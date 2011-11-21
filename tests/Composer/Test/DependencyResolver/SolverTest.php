@@ -139,6 +139,33 @@ class SolverTest extends TestCase
         $this->checkSolverResult(array());
     }
 
+    public function testSolverDowngrade()
+    {
+        $this->repoInstalled->addPackage($packageA = $this->getPackage('A', '1.1'));
+        $this->repo->addPackage($oldPackageA = $this->getPackage('A', '1.0'));
+        $this->reposComplete();
+
+        $this->request->update('A', new VersionConstraint('=', '1.0.0.0'));
+
+        $this->checkSolverResult(array(
+            array('job' => 'update', 'from' => $packageA, 'to' => $oldPackageA)
+        ));
+    }
+
+    public function testSolverMinorUpdate()
+    {
+        $this->repoInstalled->addPackage($packageA = $this->getPackage('A', '1.0'));
+        $this->repo->addPackage($newPackageA = $this->getPackage('A', '1.0.1'));
+        $this->repo->addPackage($newPackageA = $this->getPackage('A', '1.1'));
+        $this->reposComplete();
+
+        $this->request->update('A', new VersionConstraint('=', '1.0.1.0'));
+
+        $this->checkSolverResult(array(
+            array('job' => 'update', 'from' => $packageA, 'to' => $newPackageA)
+        ));
+    }
+
     public function testSolverAllJobs()
     {
         $this->repoInstalled->addPackage($packageD = $this->getPackage('D', '1.0'));
