@@ -282,6 +282,38 @@ class SolverTest extends TestCase
         )));
     }
 
+    public function testSolverKeepInstalledStateWhenInDoubt()
+    {
+        $this->repoInstalled->addPackage($packageA = $this->getPackage('A', '1.0'));
+        $this->repoInstalled->addPackage($packageB = $this->getPackage('B', '0.9'));
+        $this->repo->addPackage($packageAolder = $this->getPackage('A', '0.9'));
+        $this->repo->addPackage($packageBnewer = $this->getPackage('B', '1.1'));
+
+        $packageA->setRequires(array(new Link('A', 'B', $this->getVersionConstraint('<', '1.0'), 'requires')));
+
+        $this->reposComplete();
+
+        $this->request->updateAll();
+
+        $this->checkSolverResult(array());
+    }
+
+    public function testSolverKeepInstalledStateWhenInDoubtReversed()
+    {
+        $this->repoInstalled->addPackage($packageA = $this->getPackage('A', '0.9'));
+        $this->repoInstalled->addPackage($packageB = $this->getPackage('B', '1.1'));
+        $this->repo->addPackage($packageAolder = $this->getPackage('A', '1.0'));
+        $this->repo->addPackage($packageBnewer = $this->getPackage('B', '0.9'));
+
+        $packageA->setRequires(array(new Link('A', 'B', $this->getVersionConstraint('<', '1.0'), 'requires')));
+
+        $this->reposComplete();
+
+        $this->request->updateAll();
+
+        $this->checkSolverResult(array());
+    }
+
     public function testSolverAllJobs()
     {
         $this->repoInstalled->addPackage($packageD = $this->getPackage('D', '1.0'));
