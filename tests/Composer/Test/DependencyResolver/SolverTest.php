@@ -284,12 +284,20 @@ class SolverTest extends TestCase
 
     public function testSolverKeepInstalledStateWhenInDoubt()
     {
-        $this->repoInstalled->addPackage($packageA = $this->getPackage('A', '1.0'));
-        $this->repoInstalled->addPackage($packageB = $this->getPackage('B', '0.9'));
-        $this->repo->addPackage($packageAolder = $this->getPackage('A', '0.9'));
-        $this->repo->addPackage($packageBnewer = $this->getPackage('B', '1.1'));
+        $sourcePackage = $this->getPackage('source', '1.0');
+        $oldPackageA = $this->getPackage('A', '0.9');
+        $newPackageA = $this->getPackage('A', '1.0');
+        $oldPackageB = $this->getPackage('B', '0.9');
+        $newPackageB = $this->getPackage('B', '1.1');
 
-        $packageA->setRequires(array(new Link('A', 'B', $this->getVersionConstraint('<', '1.0'), 'requires')));
+        $sourcePackage->setRequires(array(new Link('Source', 'A', $this->getVersionConstraint('>', '0.1'), 'requires'))); // source requires any latest A
+        $newPackageA->setRequires(array(new Link('A', 'B', $this->getVersionConstraint('<', '1.0'), 'requires'))); // new A requires old B
+
+        $this->repoInstalled->addPackage($sourcePackage);
+        $this->repoInstalled->addPackage($oldPackageA);
+        $this->repoInstalled->addPackage($newPackageB);
+        $this->repo->addPackage($newPackageA);
+        $this->repo->addPackage($oldPackageB);
 
         $this->reposComplete();
 
@@ -300,18 +308,27 @@ class SolverTest extends TestCase
 
     public function testSolverKeepInstalledStateWhenInDoubtReversed()
     {
-        $this->repoInstalled->addPackage($packageA = $this->getPackage('A', '0.9'));
-        $this->repoInstalled->addPackage($packageB = $this->getPackage('B', '1.1'));
-        $this->repo->addPackage($packageAolder = $this->getPackage('A', '1.0'));
-        $this->repo->addPackage($packageBnewer = $this->getPackage('B', '0.9'));
+        $sourcePackage = $this->getPackage('source', '1.0');
+        $oldPackageA = $this->getPackage('A', '0.9');
+        $newPackageA = $this->getPackage('A', '1.0');
+        $oldPackageB = $this->getPackage('B', '0.9');
+        $newPackageB = $this->getPackage('B', '1.1');
 
-        $packageA->setRequires(array(new Link('A', 'B', $this->getVersionConstraint('<', '1.0'), 'requires')));
+        $sourcePackage->setRequires(array(new Link('Source', 'A', $this->getVersionConstraint('>', '0.1'), 'requires'))); // source requires any latest A
+        $newPackageA->setRequires(array(new Link('A', 'B', $this->getVersionConstraint('<', '1.0'), 'requires'))); // new A requires old B
+
+        $this->repoInstalled->addPackage($sourcePackage);
+        $this->repoInstalled->addPackage($newPackageA);
+        $this->repoInstalled->addPackage($oldPackageB);
+        $this->repo->addPackage($oldPackageA);
+        $this->repo->addPackage($newPackageB);
 
         $this->reposComplete();
 
         $this->request->updateAll();
 
         $this->checkSolverResult(array());
+
     }
 
     public function testSolverAllJobs()
